@@ -1,0 +1,66 @@
+version: "3.3"
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.2
+    restart: always
+    container_name: elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - "discovery.type=single-node"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    ports:
+      - "0.0.0.0:9200:9200"
+      - "0.0.0.0:9300:9300"
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.2
+    restart: always
+    container_name: kibana
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=512
+    ports:
+      - "0.0.0.0:5601:5601"
+  logstash:
+    image: docker.elastic.co/logstash/logstash-oss:8.8.2
+    restart: always
+    container_name: logstash
+    #    volumes:
+    #      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    #      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    ports:
+      - "0.0.0.0:5000:5000"
+      - "0.0.0.0:12201:12201/udp"
+    environment:
+      LS_JAVA_OPTS: "-Xmx256m -Xms256m"
+    depends_on:
+      - elasticsearch
+  rabbitmq:
+    image: rabbitmq:3.9.10-management
+    hostname: rabbitmq
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "1883:1883"
+      - "61613:61613"
+      - "15674:15674"
+      - "15675:15675"
+
+volumes:
+  elasticsearch-data:
+    driver: local
