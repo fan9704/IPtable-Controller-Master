@@ -2,7 +2,6 @@ package com.fkt.networkmaster.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fkt.networkmaster.dtos.request.MachineCreateDTO;
 import com.fkt.networkmaster.dtos.request.NetworkRecordRequestDTO;
 import com.fkt.networkmaster.models.NetworkRecord;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -20,7 +19,12 @@ public class NATClientService {
     }
 
     @RabbitListener(queues = {"nat.client"})
-    public void listenBeat(String message) throws JsonProcessingException {
+//    @RabbitListener(bindings = @QueueBinding(
+//            value = @Queue(value = "nat.client",durable = "true",autoDelete = "true"),
+//            exchange = @Exchange(value = "nat.client"),
+//            key = "nat.client"
+//    ))
+    public void listenBeat(String message)throws JsonProcessingException {
         System.out.println("Consuming Message - " + new String(message.getBytes()));
         try {
             NetworkRecordRequestDTO dto =this.messageToRequestDTO(new String(message.getBytes()));

@@ -6,6 +6,7 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class MachineCreateDTO {
     private String hostIp;
     private String backendUrl;
