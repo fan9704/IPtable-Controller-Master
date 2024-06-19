@@ -1,5 +1,21 @@
 version: "3.3"
 services:
+  backend:
+    image: fan9704/iptable_controller_master:latest
+    container_name: iptable_controller_master
+    depends_on:
+      - elasticsearch
+      - rabbitmq
+    env_file:
+      - .env
+    environment:
+      - ELASTICSEARCH_HOST=${ELASTICSEARCH_HOST:127.0.0.1}
+      - RABBIT_MQ_HOST=${RABBIT_MQ_HOST:127.0.0.1}
+      - RABBIT_MQ_PORT=${RABBIT_MQ_PORT:5672}
+      - RABBIT_MQ_USERNAME=${RABBIT_MQ_USERNAME:guest}
+      - RABBIT_MQ_PASSWORD=${RABBIT_MQ_PASSWORD:guest}
+    ports:
+      - "0.0.0.0:9991:9991"
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.8.2
     restart: always

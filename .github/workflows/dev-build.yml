@@ -1,0 +1,69 @@
+#Workflow name
+name: Dev CI/CD Pipeline
+on:
+  #Manually trigger workflow runs
+  workflow_dispatch:
+  #Trigger the workflow on push from the main branch
+  pull_request:
+    branches: [master,dev]
+jobs:
+  #Test's job
+  tests:
+    name: Unit tests
+    #Run on Ubuntu using the latest version
+    runs-on: ubuntu-latest
+    env:
+      ENV: "dev"
+    #Job's steps
+    steps:
+      #Check-out your repository under $GITHUB_WORKSPACE, so your workflow can access it
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Create env file
+        run: |
+          echo "${{ env.ENV_FILE }}" > .env
+          source .env
+      - name: Start RabbitMQ
+        uses: namoshek/rabbitmq-github-action@v1
+        with:
+          version: '3.9.10'
+          ports: '5672:5672 15672:15672'
+          container-name: 'AMQP'
+
+      - name: Run Elasticsearch
+        uses: JonasGe/elasticsearch-with-plugins-action@0.1.4
+
+      #Set up JDK 17
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      #Set up Maven cache
+      - name: Cache Maven packages
+        #This action allows caching dependencies and build outputs to improve workflow execution time.
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      #Migrate Database
+      #      - name: Migrate Database
+      #        run: mvn flyway:migrate
+      #Run Tests
+      - name: Run Tests
+        run: mvn -B test
+      # Pack Application
+      - name: build mvn package
+        run: mvn clean package
+      # Build Docker Image
+      - name: DockerHub Login
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_USERNAME }}/iptable_controller_master:${{ github.run_number }}
+
+      - name: Docker Push
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/iptable_controller_master:${{ github.run_number }}
