@@ -24,16 +24,15 @@ jobs:
         run: |
           echo "${{ env.ENV_FILE }}" > .env
           source .env
-      # TODO: Start RabbitMQ
-      - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
-        with:
-          mongodb-replica-set: test-rs
-          mongodb-port: 27017
-          mongodb-username: test
-          mongodb-password: 123456
-          mongodb-db: network
+      - name: Run Elasticsearch
+        uses: JonasGe/elasticsearch-with-plugins-action@0.1.4
 
+      - name: Start RabbitMQ
+        uses: namoshek/rabbitmq-github-action@v1
+        with:
+          version: '3.9.10'
+          ports: '5672:5672 15672:15672'
+          container-name: 'AMQP'
       #Set up JDK 17
       - name: Set up JDK
         uses: actions/setup-java@v1
