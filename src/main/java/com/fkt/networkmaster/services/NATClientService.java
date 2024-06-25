@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fkt.networkmaster.dtos.request.NetworkRecordRequestDTO;
 import com.fkt.networkmaster.models.NetworkRecord;
+import org.springframework.amqp.rabbit.annotation.Exchange;
+import org.springframework.amqp.rabbit.annotation.Queue;
+import org.springframework.amqp.rabbit.annotation.QueueBinding;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,12 +21,12 @@ public class NATClientService {
         this.service = service;
     }
 
-    @RabbitListener(queues = {"nat.client"})
-//    @RabbitListener(bindings = @QueueBinding(
-//            value = @Queue(value = "nat.client",durable = "true",autoDelete = "true"),
-//            exchange = @Exchange(value = "nat.client"),
-//            key = "nat.client"
-//    ))
+
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = "nat.client",durable = "true",autoDelete = "true"),
+            exchange = @Exchange(value = "client"),
+            key = "client"
+    ))
     public void listenBeat(String message)throws JsonProcessingException {
         System.out.println("Consuming Message - " + new String(message.getBytes()));
         try {
@@ -47,9 +50,6 @@ public class NATClientService {
     public NetworkRecordRequestDTO messageToRequestDTO(String message) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         NetworkRecordRequestDTO dto = objectMapper.readValue(message, NetworkRecordRequestDTO.class);
-
-        System.out.println("Network "  + dto.toString() +
-                " [x] Received");
         return dto;
     }
 }
