@@ -17,27 +17,19 @@ public class BeatClientService {
 
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = "beat",durable = "true",autoDelete = "true"),
+            value = @Queue(value = "beat"),
             exchange = @Exchange(value = "beat"),
             key = "beat"
     ))
     public void listenBeat(String message) throws JsonProcessingException {
-        System.out.println("Received message from Beat Queue: " + message);
+        System.out.println("[Beat] Received: " + message);
         MachineCreateDTO dto =this.messageToRequestDTO(new String(message.getBytes()));
         Machine machine =this.service.createMachine(dto);
-        if(machine != null){
-            System.out.println("New Machine");
-        }else {
-            System.out.println("Repeated Machine");
-        }
     }
 
     public MachineCreateDTO messageToRequestDTO(String message) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
         MachineCreateDTO dto = objectMapper.readValue(message, MachineCreateDTO.class);
-
-        System.out.println("Network "  + dto.toString() +
-                " [x] Received");
         return dto;
     }
 }
