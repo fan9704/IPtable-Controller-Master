@@ -2,7 +2,10 @@ package com.fkt.networkmaster.configs;
 
 //import com.fkt.networkmaster.services.NATQueueClientService;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +15,11 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     @Value("${fkt.rabbitmq.receive.queue}")
-    String queueName;
-
+    String masterQueueName;
+    String masterExchangeName="master";
+    String masterRoutingKey ="master";
+    String beatExchangeName="beat";
+    String beatRoutingKey ="beat";
     @Value("${fkt.rabbitmq.beat.queue}")
     String beatQueueName;
 
@@ -24,33 +30,33 @@ public class RabbitMQConfig {
     private String password;
 
     @Bean
-    Queue queue() {
-        return new Queue(queueName, false);
+    Queue masterQueue() {
+        return new Queue(masterQueueName, false);
     }
-
+    @Bean
+    public TopicExchange masterExchange(){
+        return new TopicExchange(masterExchangeName);
+    }
+    @Bean
+    public Binding masterJsonBinding(){
+        return BindingBuilder
+                .bind(masterQueue())
+                .to(masterExchange())
+                .with(masterRoutingKey);
+    }
     @Bean
     Queue beatQueue() {
-        return new Queue(beatQueueName, true);
+        return new Queue(beatQueueName, false);
     }
-
-    //create MessageListenerContainer using default connection factory
-//    @Bean
-//    MessageListenerContainer messageListenerContainer(ConnectionFactory connectionFactory ) {
-//        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-//        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
-//        simpleMessageListenerContainer.setQueues(queue());
-//        simpleMessageListenerContainer.setMessageListener(new NATQueueClientService());
-//        return simpleMessageListenerContainer;
-//
-//    }
-
-//    @Bean
-//    MessageListenerContainer beatListenerContainer(ConnectionFactory connectionFactory ) {
-//        SimpleMessageListenerContainer simpleMessageListenerContainer = new SimpleMessageListenerContainer();
-//        simpleMessageListenerContainer.setConnectionFactory(connectionFactory);
-//        simpleMessageListenerContainer.setQueues(beatQueue());
-//        simpleMessageListenerContainer.setMessageListener(new BeatClientService());
-//        return simpleMessageListenerContainer;
-//
-//    }
+    @Bean
+    public TopicExchange beatExchange(){
+        return new TopicExchange(beatExchangeName);
+    }
+    @Bean
+    public Binding beatJsonBinding(){
+        return BindingBuilder
+                .bind(beatQueue())
+                .to(beatExchange())
+                .with(beatRoutingKey);
+    }
 }

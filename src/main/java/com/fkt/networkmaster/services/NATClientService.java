@@ -23,12 +23,12 @@ public class NATClientService {
 
 
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = "nat.client",durable = "true",autoDelete = "true"),
+            value = @Queue(value = "nat.client"),
             exchange = @Exchange(value = "client"),
             key = "client"
     ))
     public void listenBeat(String message)throws JsonProcessingException {
-        System.out.println("Consuming Message - " + new String(message.getBytes()));
+        System.out.println("[Network] Received: " + new String(message.getBytes()));
         try {
             NetworkRecordRequestDTO dto =this.messageToRequestDTO(new String(message.getBytes()));
             System.out.println("Operation"+dto.getOperation());

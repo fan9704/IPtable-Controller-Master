@@ -1,6 +1,7 @@
 package com.fkt.networkmaster.models;
 
 
+import com.fkt.networkmaster.dtos.request.NetworkRecordAMQPRequestDTO;
 import  lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -48,5 +49,18 @@ public class NetworkRecord {
                 this.getInputPort(),
                 this.getInputIp()
         );
+    }
+    public NetworkRecordAMQPRequestDTO toAMQPDTO(String operation){
+        NetworkRecordAMQPRequestDTO dto = new NetworkRecordAMQPRequestDTO(
+                getOutputIp(),
+                getOutputPort(),
+                getInputIp(),
+                getInputPort(),
+                getProtocol(),
+                getNote(),
+                getFullNetworkRecord(),
+                operation
+        );
+        return dto;
     }
 }
